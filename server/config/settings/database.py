@@ -1,3 +1,4 @@
+# config/settings/database.py
 import os
 import dj_database_url
 
@@ -11,14 +12,15 @@ if DATABASE_URL:
             default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
+            ssl_require=True
         )
     }
 else:
-    # Development - Local PostgreSQL or SQLite fallback
+    # Development - Local PostgreSQL
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('POSTGRES_DB', 'smartclass'),
+            'NAME': os.getenv('POSTGRES_DB', 'django_react_ts_crm'),
             'USER': os.getenv('POSTGRES_USER', 'postgres'),
             'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'root8055'),
             'HOST': os.getenv('POSTGRES_HOST', 'localhost'),

@@ -3,12 +3,22 @@ import os
 import sys
 from pathlib import Path
 
+# Check if we're on Render
+ON_RENDER = os.getenv('RENDER', False) or os.getenv('DJANGO_SETTINGS_MODULE', '').endswith('production')
+
+if ON_RENDER:
+    # Force production on Render
+    os.environ.setdefault('DJANGO_ENV', 'production')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.production')
+    print("🚀 Running on Render - Forcing production settings")
+
 # Load environment variables from dotenv first
 from dotenv import load_dotenv
 
 # Load .env from project root (backend/.env)
 env_path = Path(__file__).resolve().parent.parent.parent / '.env'
-load_dotenv(dotenv_path=env_path)
+if os.path.exists(env_path):
+    load_dotenv(dotenv_path=env_path)
 
 # Determine environment
 ENVIRONMENT = os.getenv('DJANGO_ENV', 'development').lower()
