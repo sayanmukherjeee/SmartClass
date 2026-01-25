@@ -1,4 +1,4 @@
-// frontend/src/context/AuthContext.tsx
+// client/src/context/AuthContext.tsx
 import React, { createContext, useState, useEffect, useContext, ReactNode, useCallback } from 'react';
 import authApi from '../api/authApi';
 import type { User, AuthContextType, LoginCredentials, RegisterData } from '../types/index';
@@ -102,7 +102,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         authApi.setTokens({ access, refresh });
         setTokensState({ access, refresh });
         
-        authApi.clearLegacyToken();
+        // FIXED: Replaced non-existent authApi.clearLegacyToken()
+        localStorage.removeItem('token');
         
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
@@ -111,10 +112,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       return { success: false, error: 'No data received' };
     } catch (err: any) {
+      console.error("Login Error:", err); // FIXED: Added logging
       const errorMessage = err.response?.data?.detail || 
-                          err.response?.data?.error || 
-                          Object.values(err.response?.data || {}).flat().join(', ') ||
-                          'Login failed. Please try again.';
+                           err.response?.data?.error || 
+                           Object.values(err.response?.data || {}).flat().join(', ') ||
+                           'Login failed. Please try again.';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -137,7 +139,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         authApi.setTokens({ access, refresh });
         setTokensState({ access, refresh });
         
-        authApi.clearLegacyToken();
+        // FIXED: Replaced non-existent authApi.clearLegacyToken()
+        localStorage.removeItem('token');
         
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
@@ -146,10 +149,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       return { success: false, error: 'No data received' };
     } catch (err: any) {
+      console.error("Admin Login Error:", err); // FIXED: Added logging
       const errorMessage = err.response?.data?.detail || 
-                          err.response?.data?.error || 
-                          Object.values(err.response?.data || {}).flat().join(', ') ||
-                          'Admin login failed. Please try again.';
+                           err.response?.data?.error || 
+                           Object.values(err.response?.data || {}).flat().join(', ') ||
+                           'Admin login failed. Please try again.';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -166,7 +170,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         authApi.setTokens({ access, refresh });
         setTokensState({ access, refresh });
         
-        authApi.clearLegacyToken();
+        // FIXED: Replaced non-existent authApi.clearLegacyToken()
+        localStorage.removeItem('token');
         
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
@@ -175,10 +180,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       return { success: false, error: 'No data received' };
     } catch (err: any) {
+      console.error("Registration Error:", err); // FIXED: Added logging
       const errorMessage = err.response?.data?.detail || 
-                          err.response?.data?.error || 
-                          Object.values(err.response?.data || {}).flat().join(', ') ||
-                          'Registration failed. Please try again.';
+                           err.response?.data?.error || 
+                           Object.values(err.response?.data || {}).flat().join(', ') ||
+                           'Registration failed. Please try again.';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -195,7 +201,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         authApi.setTokens({ access, refresh });
         setTokensState({ access, refresh });
         
-        authApi.clearLegacyToken();
+        // FIXED: Replaced non-existent authApi.clearLegacyToken()
+        localStorage.removeItem('token');
         
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
@@ -204,10 +211,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       return { success: false, error: 'No data received' };
     } catch (err: any) {
+      console.error("Admin Registration Error:", err); // FIXED: Added logging
       const errorMessage = err.response?.data?.detail || 
-                          err.response?.data?.error || 
-                          Object.values(err.response?.data || {}).flat().join(', ') ||
-                          'Admin registration failed. Please try again.';
+                           err.response?.data?.error || 
+                           Object.values(err.response?.data || {}).flat().join(', ') ||
+                           'Admin registration failed. Please try again.';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -224,7 +232,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Logout error:', err);
     } finally {
       authApi.clearTokens();
-      authApi.clearLegacyToken();
+      // FIXED: Replaced non-existent authApi.clearLegacyToken()
+      localStorage.removeItem('token');
       setUser(null);
       setTokensState({ access: null, refresh: null });
     }
@@ -237,7 +246,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Logout all error:', err);
     } finally {
       authApi.clearTokens();
-      authApi.clearLegacyToken();
+      // FIXED: Replaced non-existent authApi.clearLegacyToken()
+      localStorage.removeItem('token');
       setUser(null);
       setTokensState({ access: null, refresh: null });
     }

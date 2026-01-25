@@ -6,11 +6,24 @@ import type {
   AxiosError 
 } from 'axios';
 
+// Determine base URL based on environment
+const getBaseURL = () => {
+  // Production: Use environment variable
+  if (import.meta.env.PROD) {
+    return import.meta.env.VITE_API_URL || 'https://smartclass-backend-bxld.onrender.com/api/v1/';
+  }
+  // Development: USE THE PROXY! 
+  // Do not use http://localhost:8000 directly.
+  return '/api/'; 
+};
+
 const axiosClient: AxiosInstance = axios.create({
-  baseURL: 'http://localhost:8000/api/v1/',
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 seconds timeout for production
+  withCredentials: true, // Important for cookies/JWT
 });
 
 let isRefreshing = false;
@@ -34,6 +47,12 @@ axiosClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Add request ID for debugging in production
+    if (import.meta.env.PROD) {
+      config.headers['X-Request-ID'] = Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+    
     return config;
   },
   (error: AxiosError) => {
@@ -46,6 +65,7 @@ axiosClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
+    // Handle 401 Unauthorized (token expired)
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -64,16 +84,13 @@ axiosClient.interceptors.response.use(
       const refreshToken = localStorage.getItem('refresh_token');
       
       if (!refreshToken) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        handleLogout();
         return Promise.reject(error);
       }
 
       try {
         const response = await axios.post(
-          'http://localhost:8000/api/v1/auth/token/refresh/',
+          `${getBaseURL()}auth/token/refresh/`,
           { refresh: refreshToken }
         );
 
@@ -92,22 +109,44 @@ axiosClient.interceptors.response.use(
         return axiosClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError as AxiosError, null);
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        handleLogout();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
     }
 
+    // Handle 403 Forbidden
     if (error.response?.status === 403) {
       console.error('Access denied');
+      // Optional: Redirect to unauthorized page
+      if (window.location.pathname !== '/unauthorized') {
+        window.location.href = '/unauthorized';
+      }
+    }
+
+    // Handle network errors
+    if (!error.response) {
+      console.error('Network error - API server may be down');
+      // Optional: Show offline notification
+      if (import.meta.env.PROD) {
+        // You could dispatch a Redux action or show a toast here
+      }
     }
 
     return Promise.reject(error);
   }
 );
+
+const handleLogout = () => {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user');
+  
+  // Redirect to login
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
+};
 
 export default axiosClient;

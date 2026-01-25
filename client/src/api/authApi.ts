@@ -43,7 +43,16 @@ const authApi = {
   },
 
   isAuthenticated: (): boolean => {
-    return localStorage.getItem('access_token') !== null;
+    const token = localStorage.getItem('access_token');
+    if (!token) return false;
+    
+    // Check token expiration (optional)
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 > Date.now();
+    } catch {
+      return false;
+    }
   },
 
   getTokens: (): { access: string | null; refresh: string | null } => {
@@ -56,6 +65,13 @@ const authApi = {
   setTokens: (tokens: { access?: string; refresh?: string }): void => {
     if (tokens.access) {
       localStorage.setItem('access_token', tokens.access);
+      // Store token expiration time
+      try {
+        const payload = JSON.parse(atob(tokens.access.split('.')[1]));
+        localStorage.setItem('token_expires', payload.exp.toString());
+      } catch (e) {
+        console.warn('Could not parse token payload');
+      }
     }
     if (tokens.refresh) {
       localStorage.setItem('refresh_token', tokens.refresh);
@@ -66,18 +82,16 @@ const authApi = {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
+    localStorage.removeItem('token_expires');
   },
 
-  getLegacyToken: (): string | null => {
-    return localStorage.getItem('token');
-  },
-
-  setLegacyToken: (token: string): void => {
-    localStorage.setItem('token', token);
-  },
-
-  clearLegacyToken: (): void => {
-    localStorage.removeItem('token');
+  // For development logging
+  debugInfo: () => {
+    if (!import.meta.env.PROD) {
+      console.log('API Base URL:', axiosClient.defaults.baseURL);
+      console.log('Environment:', import.meta.env.MODE);
+      console.log('Has token:', !!localStorage.getItem('access_token'));
+    }
   }
 };
 

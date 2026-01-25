@@ -3,6 +3,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Users
+import sys
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -63,10 +64,19 @@ class LoginSerializer(serializers.Serializer):
         password = data.get('password')
         
         if username and password:
+            # 1. Allow login by Email OR Username
+            if '@' in username:
+                try:
+                    user_obj = Users.objects.get(email=username)
+                    username = user_obj.username
+                except Users.DoesNotExist:
+                    pass
+            
+            # 2. Authenticate
             user = authenticate(username=username, password=password)
+            
             if user:
                 if user.is_active:
-                    # Generate JWT tokens
                     refresh = RefreshToken.for_user(user)
                     data['refresh'] = str(refresh)
                     data['access'] = str(refresh.access_token)

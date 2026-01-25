@@ -22,7 +22,7 @@ class CustomAuthToken(APIView):
             access = serializer.validated_data['access']
             
             # Login for session
-            login(request, user)
+            # login(request, user)
             
             user_data = UserSerializer(user).data
             
@@ -103,7 +103,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            login(request, user)
+            # login(request, user)
             
             user.last_login = timezone.now()
             user.save()
@@ -131,7 +131,7 @@ class AdminLoginView(APIView):
                     'error': 'Access denied. Admin privileges required.'
                 }, status=status.HTTP_403_FORBIDDEN)
             
-            login(request, user)
+            # login(request, user)
             
             user.last_login = timezone.now()
             user.save()
@@ -153,24 +153,36 @@ class TokenRefreshView(APIView):
         serializer = TokenRefreshSerializer(data=request.data)
         if serializer.is_valid():
             try:
+                # 1. Get the validated token object
                 refresh_token = serializer.validated_data['refresh']
                 
-                # Create new access token
-                access_token = refresh_token.access_token
+                # 2. FIX: Extract user_id from the token payload
+                # 'refresh_token' behaves like a dictionary here
+                user_id = refresh_token['user_id'] 
                 
-                # Rotate refresh token (get new one)
-                new_refresh = RefreshToken.for_user(refresh_token.user)
+                # 3. FIX: Fetch the actual User instance from the DB
+                user = Users.objects.get(id=user_id)
                 
-                # Blacklist the old refresh token
-                refresh_token.blacklist()
+                # 4. Rotate refresh token (generate a brand new one for this user)
+                new_refresh = RefreshToken.for_user(user)
+                
+                # 5. Blacklist the old refresh token
+                try:
+                    refresh_token.blacklist()
+                except AttributeError:
+                    pass # logic if blacklist app is not installed, but you have it
                 
                 return Response({
                     'access': str(new_refresh.access_token),
                     'refresh': str(new_refresh),
                     'message': 'Token refreshed successfully'
                 })
+                
+            except Users.DoesNotExist:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
             except TokenError as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TokenVerifyView(APIView):

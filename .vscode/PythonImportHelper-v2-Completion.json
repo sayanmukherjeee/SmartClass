@@ -3924,7 +3924,7 @@
         "kind": 6,
         "importPath": "server.user.serializers",
         "description": "server.user.serializers",
-        "peekOfCode": "class LoginSerializer(serializers.Serializer):\n    username = serializers.CharField(max_length=150)\n    password = serializers.CharField(write_only=True)\n    def validate(self, data):\n        username = data.get('username')\n        password = data.get('password')\n        if username and password:\n            user = authenticate(username=username, password=password)\n            if user:\n                if user.is_active:",
+        "peekOfCode": "class LoginSerializer(serializers.Serializer):\n    username = serializers.CharField(max_length=150)\n    password = serializers.CharField(write_only=True)\n    def validate(self, data):\n        username = data.get('username')\n        password = data.get('password')\n        if username and password:\n            # 1. Allow login by Email OR Username\n            if '@' in username:\n                try:",
         "detail": "server.user.serializers",
         "documentation": {}
     },
@@ -4005,7 +4005,7 @@
         "kind": 6,
         "importPath": "server.user.views",
         "description": "server.user.views",
-        "peekOfCode": "class TokenRefreshView(APIView):\n    permission_classes = [permissions.AllowAny]\n    def post(self, request, *args, **kwargs):\n        serializer = TokenRefreshSerializer(data=request.data)\n        if serializer.is_valid():\n            try:\n                refresh_token = serializer.validated_data['refresh']\n                # Create new access token\n                access_token = refresh_token.access_token\n                # Rotate refresh token (get new one)",
+        "peekOfCode": "class TokenRefreshView(APIView):\n    permission_classes = [permissions.AllowAny]\n    def post(self, request, *args, **kwargs):\n        serializer = TokenRefreshSerializer(data=request.data)\n        if serializer.is_valid():\n            try:\n                # 1. Get the validated token object\n                refresh_token = serializer.validated_data['refresh']\n                # 2. FIX: Extract user_id from the token payload\n                # 'refresh_token' behaves like a dictionary here",
         "detail": "server.user.views",
         "documentation": {}
     },
