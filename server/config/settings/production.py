@@ -76,6 +76,12 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'x-request-id',  # Add this
+    'x-vercel-id',   # Add this for Vercel
+    'x-vercel-deployment-url',  # Add this
+    'x-forwarded-for',  # Add this
+    'x-forwarded-host',  # Add this
+    'x-forwarded-proto',  # Add this
 ]
 
 # Security settings (only in production)
