@@ -51,10 +51,32 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # CORS settings for production
 CORS_ALLOWED_ORIGINS = [
-    "https://smartclass-frontend.vercel.app",
+    "https://smart-class-gamma.vercel.app/",
     "http://localhost:5173",
 ]
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Security settings (only in production)
 SECURE_SSL_REDIRECT = True
