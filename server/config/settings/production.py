@@ -51,7 +51,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # CORS settings for production
 CORS_ALLOWED_ORIGINS = [
-    "https://smart-class-gamma.vercel.app/",
+    "https://smart-class-gamma.vercel.app",
     "http://localhost:5173",
 ]
 CORS_ALLOW_ALL_ORIGINS = False
